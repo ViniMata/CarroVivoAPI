@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: carrovivo-db
+    environment:
+      POSTGRES_DB: carrovivo
+      POSTGRES_USER: carrovivo
+      POSTGRES_PASSWORD: carrovivo123
+    ports:
+      - "5432:5432"
+    volumes:
+      - carrovivo_data:/var/lib/postgresql/data
+
+volumes:
+  carrovivo_data:
