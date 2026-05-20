@@ -132,6 +132,8 @@ As migrações são executadas automaticamente ao iniciar a aplicação:
 | V3 | `V3__create_diagnostics.sql` | Tabela de diagnósticos |
 | V4 | `V4__create_warranties.sql` | Tabela de garantias |
 | V5 | `V5__create_notifications.sql` | Tabela de notificações |
+| V6 | `V6__create_users.sql` | Tabela de usuários |
+| V7 | `V7__create_audit_logs.sql` | Tabela de auditoria |
 
 ---
 
