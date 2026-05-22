@@ -6,13 +6,11 @@ API REST para gerenciamento inteligente de veículos — diagnóstico de peças,
 
 ## 📋 Sobre o Projeto
 
-O **Carro Vivo** é um sistema orientado a serviços (SOA) desenvolvido com **Java 21** e **Spring Boot 4.0.6**, seguindo os princípios de arquitetura REST e boas práticas de desenvolvimento. O sistema permite o gerenciamento completo do ciclo de vida de um veículo, desde o cadastro até o diagnóstico de peças e agendamento em concessionárias.
+O **Carro Vivo** é um sistema orientado a serviços (SOA) desenvolvido com **Java 21** e **Spring Boot 3**, seguindo os princípios de arquitetura REST e boas práticas de segurança e desenvolvimento.
 
 ---
 
 ## 🏗️ Arquitetura
-
-O projeto segue o padrão **SOA (Service-Oriented Architecture)** com separação clara entre três camadas:
 
 ```
 ┌─────────────────────────────────────────┐
@@ -49,24 +47,20 @@ com.carrovivo.api
 └── security/
 ```
 
-Cada módulo é **independente e reutilizável**, comunicando-se apenas através de seus DTOs e interfaces de serviço.
-
 ---
 
 ## 🛠️ Tecnologias
 
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 4.0.6 | Framework principal |
-| Spring Web | — | APIs RESTful |
-| Spring Data JPA | — | Persistência |
-| Spring Security | — | Autenticação e autorização |
-| PostgreSQL | 16 | Banco de dados |
-| Flyway | 11 | Controle de migrações |
-| Lombok | — | Redução de boilerplate |
-| SpringDoc OpenAPI | 2.5.0 | Documentação Swagger |
-| Docker | — | Containerização do banco |
+| Tecnologia | Uso |
+|---|---|
+| Java 21 | Linguagem principal |
+| Spring Boot | Framework principal |
+| Spring Security | Autenticação JWT + RBAC |
+| PostgreSQL 16 | Banco de dados |
+| Flyway | Controle de migrações |
+| Lombok | Redução de boilerplate |
+| SpringDoc OpenAPI | Documentação Swagger |
+| Docker | Containerização do banco |
 
 ---
 
@@ -85,15 +79,25 @@ git clone https://github.com/seu-usuario/carrovivo-api.git
 cd carrovivo-api
 ```
 
-### 2. Suba o banco de dados
+### 2. Configure as variáveis de ambiente
+
+Copie o arquivo de exemplo e preencha com seus valores:
+
+```bash
+cp .env.example .env
+```
+
+Edite o `.env` com suas credenciais. **Nunca commite o `.env`** — ele já está no `.gitignore`.
+
+### 3. Suba o banco de dados
 
 ```bash
 docker-compose up -d
 ```
 
-O arquivo `docker-compose.yml` na raiz do projeto sobe um container PostgreSQL 16 na porta `5432` com as credenciais configuradas.
+> O Docker lê automaticamente as variáveis do `.env` na raiz do projeto.
 
-### 3. Execute o projeto
+### 4. Execute o projeto
 
 ```bash
 ./mvnw spring-boot:run
@@ -101,7 +105,9 @@ O arquivo `docker-compose.yml` na raiz do projeto sobe um container PostgreSQL 1
 
 Ou pelo IntelliJ IDEA com `Shift + F10`.
 
-### 4. Acesse a documentação
+### 5. Acesse a documentação
+
+O Swagger está protegido e requer autenticação com role **ADMIN**:
 
 ```
 http://localhost:8080/swagger-ui.html
@@ -109,21 +115,44 @@ http://localhost:8080/swagger-ui.html
 
 ---
 
-## 📦 Banco de Dados
+## 🔐 Segurança
 
-A conexão é configurada no `application.yml`:
+### Autenticação
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/carrovivo
-    username: carrovivo
-    password: carrovivo123
+A API usa **JWT Bearer Tokens** com expiração de **30 minutos**.
+
+**Login:**
+```
+POST /api/auth/login
+{ "username": "admin", "password": "sua-senha" }
 ```
 
-### Migrações (Flyway)
+Copie o token retornado e use no header de todas as requisições:
+```
+Authorization: Bearer <token>
+```
 
-As migrações são executadas automaticamente ao iniciar a aplicação:
+### Roles (RBAC)
+
+| Role | Acesso |
+|---|---|
+| ADMIN | Tudo, incluindo Swagger e registro de usuários |
+| ANALYST | Veículos, manutenções, diagnósticos, garantias, notificações, dealers |
+| USER | Veículos, notificações, dealers |
+
+### Registro de usuários
+
+Somente **ADMIN** pode registrar novos usuários:
+```
+POST /api/auth/register  (requer token ADMIN)
+{ "username": "analista1", "password": "senha123", "role": "ANALYST" }
+```
+
+---
+
+## 📦 Banco de Dados
+
+A conexão usa variáveis de ambiente definidas no `.env`. As migrações são executadas automaticamente pelo Flyway ao iniciar:
 
 | Versão | Arquivo | Descrição |
 |---|---|---|
@@ -138,8 +167,6 @@ As migrações são executadas automaticamente ao iniciar a aplicação:
 ---
 
 ## 🔗 Endpoints da API
-
-A documentação completa e interativa está disponível no Swagger UI. Abaixo um resumo dos principais endpoints:
 
 ### Vehicles `/api/vehicles`
 
@@ -158,8 +185,8 @@ A documentação completa e interativa está disponível no Swagger UI. Abaixo u
 |---|---|---|
 | GET | `/api/maintenances` | Listar todas as manutenções |
 | GET | `/api/maintenances/{id}` | Buscar manutenção por ID |
-| GET | `/api/maintenances/vehicle/{id}` | Histórico de manutenções do veículo |
-| GET | `/api/maintenances/recurring` | Listar manutenções recorrentes |
+| GET | `/api/maintenances/vehicle/{id}` | Histórico por veículo |
+| GET | `/api/maintenances/recurring` | Manutenções recorrentes |
 | POST | `/api/maintenances` | Registrar nova manutenção |
 | PUT | `/api/maintenances/{id}` | Atualizar manutenção |
 | DELETE | `/api/maintenances/{id}` | Remover manutenção |
@@ -178,8 +205,8 @@ A documentação completa e interativa está disponível no Swagger UI. Abaixo u
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| GET | `/api/warranties/vehicle/{id}` | Buscar garantia ativa do veículo |
-| GET | `/api/warranties/{id}/valid` | Verificar se garantia está válida |
+| GET | `/api/warranties/vehicle/{id}` | Garantia ativa do veículo |
+| GET | `/api/warranties/{id}/valid` | Verificar se garantia é válida |
 | POST | `/api/warranties` | Registrar garantia |
 | PUT | `/api/warranties/{id}` | Atualizar garantia |
 
@@ -187,7 +214,7 @@ A documentação completa e interativa está disponível no Swagger UI. Abaixo u
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| GET | `/api/notifications/vehicle/{id}` | Listar notificações do veículo |
+| GET | `/api/notifications/vehicle/{id}` | Notificações do veículo |
 | POST | `/api/notifications/send` | Enviar notificação |
 | PUT | `/api/notifications/{id}/read` | Marcar como lida |
 
@@ -195,21 +222,36 @@ A documentação completa e interativa está disponível no Swagger UI. Abaixo u
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| GET | `/api/dealers/nearby?city={city}` | Concessionárias próximas por cidade |
-| GET | `/api/dealers/{id}/prices` | Preços de serviços da concessionária |
+| GET | `/api/dealers/nearby?city={city}` | Concessionárias próximas |
+| GET | `/api/dealers/{id}/prices` | Preços de serviços |
 | GET | `/api/dealers/{id}/schedule` | Disponibilidade de agendamento |
+
+### Auth `/api/auth`
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| POST | `/api/auth/login` | Login e geração de token JWT |
+| POST | `/api/auth/register` | Registrar usuário (somente ADMIN) |
+
+### Audit `/api/audit`
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/api/audit` | Listar logs (paginado, somente ADMIN) |
+| GET | `/api/audit/user/{username}` | Logs por usuário |
+| GET | `/api/audit/status/{status}` | Logs por status |
 
 ---
 
-## ⚠️ Tratamento de Erros
+## ⚠️ Respostas de Erro
 
-A API retorna respostas padronizadas para erros:
+A API retorna respostas padronizadas sem expor detalhes internos:
 
 ```json
 {
   "timestamp": "2026-05-18T20:00:00",
   "status": 404,
-  "message": "Veículo não encontrado com id: 1"
+  "message": "Recurso não encontrado"
 }
 ```
 
@@ -219,30 +261,12 @@ A API retorna respostas padronizadas para erros:
 | 201 | Recurso criado |
 | 204 | Removido com sucesso |
 | 400 | Erro de validação |
-| 404 | Recurso não encontrado |
+| 401 | Credenciais inválidas |
+| 429 | Muitas requisições (rate limit) |
 | 500 | Erro interno do servidor |
-
----
-
-## 📄 Documentação Interativa
-
-Acesse o Swagger UI para testar todos os endpoints diretamente pelo navegador:
-
-```
-http://localhost:8080/swagger-ui.html
-```
-
-A especificação OpenAPI em JSON está disponível em:
-
-```
-http://localhost:8080/api-docs
-```
 
 ---
 
 ## 👥 Equipe
 
-Desenvolvido como projeto acadêmico — Integração de Sistemas / Arquitetura Orientada a Serviços.# CarroVivoAPI
-# CarroVivoAPI
-# CarroVivoAPI
-# CarroVivoAPI
+Desenvolvido como projeto acadêmico — Integração de Sistemas / Arquitetura Orientada a Serviços.

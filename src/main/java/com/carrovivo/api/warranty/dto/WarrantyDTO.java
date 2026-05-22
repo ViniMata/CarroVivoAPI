@@ -1,7 +1,11 @@
 package com.carrovivo.api.warranty.dto;
 
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,6 +19,7 @@ public class WarrantyDTO {
     @NotNull(message = "ID do veículo é obrigatório")
     private Long vehicleId;
 
+    @Size(max = 500, message = "Descrição deve ter no máximo 500 caracteres")
     private String description;
 
     @NotNull(message = "Data de início é obrigatória")
