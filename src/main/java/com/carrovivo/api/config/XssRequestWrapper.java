@@ -19,16 +19,14 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
 
     // [SEC-19] SANITIZAÇÃO DO BODY NO CONSTRUTOR
     // O body é lido, sanitizado e armazenado em memória uma única vez.
-    // Necessário pois getInputStream() só pode ser lido uma vez por padrão.
     public XssRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
         String body = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        this.sanitizedBody = sanitize(body).getBytes(StandardCharsets.UTF_8);
+        this.sanitizedBody = sanitizeBody(body).getBytes(StandardCharsets.UTF_8);
     }
 
     // [SEC-20] getInputStream E getReader SOBRESCRITOS
     // O Spring usa estes métodos para ler @RequestBody em APIs REST.
-    // Sem sobrescrever ambos, toda sanitização seria ignorada em POSTs e PUTs.
     @Override
     public ServletInputStream getInputStream() {
         ByteArrayInputStream bais = new ByteArrayInputStream(sanitizedBody);
@@ -51,26 +49,36 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         String[] values = super.getParameterValues(parameter);
         if (values == null) return null;
         String[] sanitized = new String[values.length];
-        for (int i = 0; i < values.length; i++) sanitized[i] = sanitize(values[i]);
+        for (int i = 0; i < values.length; i++) sanitized[i] = sanitizeParam(values[i]);
         return sanitized;
     }
 
     @Override
     public String getParameter(String parameter) {
-        return sanitize(super.getParameter(parameter));
+        return sanitizeParam(super.getParameter(parameter));
     }
 
     @Override
     public String getHeader(String name) {
-        return sanitize(super.getHeader(name));
+        return sanitizeParam(super.getHeader(name));
     }
 
-    // [SEC-22] REGRAS DE SANITIZAÇÃO
-    // Escapa caracteres HTML especiais e remove padrões XSS conhecidos:
-    // - Tags HTML (<, >) convertidas para entidades HTML seguras
-    // - Aspas escapadas para evitar injeção em atributos
-    // - eval(), javascript: e <script removidos independente de capitalização
-    private String sanitize(String value) {
+    // [SEC-22] SANITIZAÇÃO DO BODY JSON
+    // Remove padrões XSS sem tocar na estrutura JSON.
+    // Não escapa "/" pois faz parte da sintaxe JSON e não é vetor XSS em JSON puro.
+    private String sanitizeBody(String value) {
+        if (value == null) return null;
+        return value
+                .replaceAll("(?i)<script[^>]*>.*?</script>", "")
+                .replaceAll("(?i)<script",      "")
+                .replaceAll("(?i)javascript:",  "")
+                .replaceAll("(?i)eval\\(.*?\\)", "");
+    }
+
+    // [SEC-22] SANITIZAÇÃO DE PARAMS E HEADERS
+    // Escapa caracteres HTML especiais em query params e headers
+    // onde a / não faz parte de uma estrutura de dados.
+    private String sanitizeParam(String value) {
         if (value == null) return null;
         return value
                 .replaceAll("<",   "&lt;")
@@ -80,8 +88,8 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
                 .replaceAll("/",   "&#x2F;")
                 .replaceAll("\\(", "&#40;")
                 .replaceAll("\\)", "&#41;")
-                .replaceAll("(?i)eval\\(.*\\)", "")
-                .replaceAll("(?i)javascript:", "")
-                .replaceAll("(?i)<script",      "");
+                .replaceAll("(?i)eval\\(.*?\\)", "")
+                .replaceAll("(?i)javascript:",   "")
+                .replaceAll("(?i)<script",       "");
     }
 }

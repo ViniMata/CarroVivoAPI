@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 // [SEC-23] FILTRO XSS — PONTO DE ENTRADA DA SANITIZAÇÃO
-// Intercepta todas as requisições HTTP e as envolve com
-// o XssRequestWrapper antes de chegarem aos controllers.
+// Intercepta todas as requisições HTTP e as envolve com o XssRequestWrapper antes de chegarem aos controllers.
 @Component
 public class XssFilter implements Filter {
 
@@ -20,8 +19,7 @@ public class XssFilter implements Filter {
             throws IOException, ServletException {
         // [SEC-24] TODA REQUISIÇÃO É SANITIZADA
         // Substitui a requisição original pelo wrapper sanitizado.
-        // A partir daqui, qualquer leitura de parâmetro, header ou body
-        // retornará dados já sanitizados.
+        // A partir daqui, qualquer leitura de parâmetro, header ou body retornará dados já sanitizados.
         chain.doFilter(new XssRequestWrapper((HttpServletRequest) request), response);
     }
 }
