@@ -17,18 +17,18 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-//  RATE LIMITING — PROTEÇÃO CONTRA FLOODING E DoS
+// [SEC-14] RATE LIMITING — PROTEÇÃO CONTRA FLOODING E DoS
 // Limita o número de requisições por IP para evitar ataques
 // de negação de serviço (DoS) e flooding de endpoints.
 @Component
 public class RateLimitFilter implements Filter {
 
-    //  BUCKET POR IP — ISOLAMENTO DE LIMITE
+    // [SEC-15] BUCKET POR IP — ISOLAMENTO DE LIMITE
     // Cada IP tem seu próprio bucket de tokens, garantindo que
     // um IP agressivo não afete os outros usuários.
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    //  60 REQUISIÇÕES POR MINUTO POR IP
+    // [SEC-16] 60 REQUISIÇÕES POR MINUTO POR IP
     // Janela deslizante (greedy refill): tokens são reabastecidos
     // continuamente, não em rajada ao fim do minuto.
     private Bucket createBucket() {
@@ -50,7 +50,7 @@ public class RateLimitFilter implements Filter {
         if (bucket.tryConsume(1)) {
             chain.doFilter(request, response);
         } else {
-            //  RESPOSTA 429 — TOO MANY REQUESTS
+            // [SEC-17] RESPOSTA 429 — TOO MANY REQUESTS
             // Retorna status padronizado sem expor detalhes internos.
             httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             httpResponse.setContentType("application/json");

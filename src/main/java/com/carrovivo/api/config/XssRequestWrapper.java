@@ -10,14 +10,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-// SANITIZAÇÃO XSS — PROTEÇÃO CONTRA CROSS-SITE SCRIPTING
+// [SEC-18] SANITIZAÇÃO XSS — PROTEÇÃO CONTRA CROSS-SITE SCRIPTING
 // Intercepta e sanitiza toda entrada antes que chegue aos controllers.
 // Cobre query params, headers E body JSON (via getInputStream/getReader).
 public class XssRequestWrapper extends HttpServletRequestWrapper {
 
     private final byte[] sanitizedBody;
 
-    // SANITIZAÇÃO DO BODY NO CONSTRUTOR
+    // [SEC-19] SANITIZAÇÃO DO BODY NO CONSTRUTOR
     // O body é lido, sanitizado e armazenado em memória uma única vez.
     // Necessário pois getInputStream() só pode ser lido uma vez por padrão.
     public XssRequestWrapper(HttpServletRequest request) throws IOException {
@@ -26,7 +26,7 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         this.sanitizedBody = sanitize(body).getBytes(StandardCharsets.UTF_8);
     }
 
-    // getInputStream E getReader SOBRESCRITOS
+    // [SEC-20] getInputStream E getReader SOBRESCRITOS
     // O Spring usa estes métodos para ler @RequestBody em APIs REST.
     // Sem sobrescrever ambos, toda sanitização seria ignorada em POSTs e PUTs.
     @Override
@@ -45,7 +45,7 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         return new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8));
     }
 
-    // SANITIZAÇÃO DE QUERY PARAMS E HEADERS
+    // [SEC-21] SANITIZAÇÃO DE QUERY PARAMS E HEADERS
     @Override
     public String[] getParameterValues(String parameter) {
         String[] values = super.getParameterValues(parameter);
@@ -65,7 +65,7 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         return sanitize(super.getHeader(name));
     }
 
-    // REGRAS DE SANITIZAÇÃO
+    // [SEC-22] REGRAS DE SANITIZAÇÃO
     // Escapa caracteres HTML especiais e remove padrões XSS conhecidos:
     // - Tags HTML (<, >) convertidas para entidades HTML seguras
     // - Aspas escapadas para evitar injeção em atributos

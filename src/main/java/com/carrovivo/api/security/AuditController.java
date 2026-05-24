@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-// CONTROLLER DE AUDITORIA — ACESSO EXCLUSIVO ADMIN
+// [SEC-58] CONTROLLER DE AUDITORIA — ACESSO EXCLUSIVO ADMIN
 // Expõe a trilha de auditoria apenas para administradores.
 @RestController
 @RequestMapping("/api/audit")
@@ -23,7 +23,7 @@ public class AuditController {
 
     private final AuditLogRepository repository;
 
-    // PAGINAÇÃO OBRIGATÓRIA — PREVENÇÃO DE DoS
+    // [SEC-59] PAGINAÇÃO OBRIGATÓRIA — PREVENÇÃO DE DoS
     // Sem paginação, um findAll() poderia retornar milhões de registros,
     // causando estouro de memória e indisponibilidade (DoS acidental ou intencional).
     // Máximo de 50 registros por página.

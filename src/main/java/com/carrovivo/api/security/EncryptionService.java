@@ -8,24 +8,24 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-// CRIPTOGRAFIA EM REPOUSO — AES-256-CBC
+// [SEC-47] CRIPTOGRAFIA EM REPOUSO — AES-256-CBC
 // Dados sensíveis armazenados no banco são criptografados com AES-256.
 // O dado no banco é ilegível sem a chave secreta.
 @Service
 public class EncryptionService {
 
-    // CHAVE SECRETA VIA VARIÁVEL DE AMBIENTE
+    // [SEC-48] CHAVE SECRETA VIA VARIÁVEL DE AMBIENTE
     // Nunca hardcoded. A chave deve ter exatamente 32 caracteres para AES-256.
     @Value("${encryption.secret}")
     private String secret;
 
-    // AES-256 COM MODO CBC E PADDING PKCS5
+    // [SEC-49] AES-256 COM MODO CBC E PADDING PKCS5
     // CBC (Cipher Block Chaining): cada bloco cifrado depende do anterior,
     // tornando padrões repetitivos no plaintext invisíveis no ciphertext.
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
     private static final int IV_LENGTH = 16;
 
-    // IV ALEATÓRIO POR CHAMADA — SEGURANÇA REAL DO AES-CBC
+    // [SEC-50] IV ALEATÓRIO POR CHAMADA — SEGURANÇA REAL DO AES-CBC
     // O Initialization Vector (IV) garante que o mesmo dado produz
     // ciphertexts diferentes a cada criptografia.
     // Armazenado junto ao ciphertext no formato: Base64(IV):Base64(ciphertext)
@@ -44,12 +44,12 @@ public class EncryptionService {
             return Base64.getEncoder().encodeToString(ivBytes)
                     + ":" + Base64.getEncoder().encodeToString(encrypted);
         } catch (Exception e) {
-            // ERRO GENÉRICO — NÃO EXPÕE DETALHES DA CRIPTOGRAFIA
+            // [SEC-51] ERRO GENÉRICO — NÃO EXPÕE DETALHES DA CRIPTOGRAFIA
             throw new RuntimeException("Erro ao criptografar dado");
         }
     }
 
-    // DESCRIPTOGRAFIA — EXTRAI IV DO PREFIXO
+    // [SEC-52] DESCRIPTOGRAFIA — EXTRAI IV DO PREFIXO
     // Lê o IV armazenado junto ao ciphertext para reverter a operação.
     public String decrypt(String encryptedData) {
         try {
@@ -70,7 +70,7 @@ public class EncryptionService {
         }
     }
 
-    // ANONIMIZAÇÃO DE DADOS — LGPD
+    // [SEC-53] ANONIMIZAÇÃO DE DADOS — LGPD
     // Substitui parte do dado por asteriscos para exibição em dashboards
     // e logs sem expor o dado completo. Reversível apenas com a chave original.
     public String anonymize(String data) {

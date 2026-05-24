@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-// FILTRO JWT — INTERCEPTA E VALIDA O TOKEN EM CADA REQUISIÇÃO
+// [SEC-30] FILTRO JWT — INTERCEPTA E VALIDA O TOKEN EM CADA REQUISIÇÃO
 // Estende OncePerRequestFilter: garante execução única por requisição,
 // mesmo em casos de forward ou dispatch interno.
 @Component
@@ -28,14 +28,14 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // LEITURA DO BEARER TOKEN NO HEADER Authorization
+        // [SEC-31] LEITURA DO BEARER TOKEN NO HEADER Authorization
         // Padrão OAuth2: "Authorization: Bearer <token>"
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            // VALIDAÇÃO DO TOKEN ANTES DE AUTENTICAR
+            // [SEC-32] VALIDAÇÃO DO TOKEN ANTES DE AUTENTICAR
             // Só autentica se o token for válido (assinatura + expiração).
             // Token inválido é silenciosamente ignorado — a requisição
             // continua sem autenticação e será bloqueada pelo SecurityConfig.
@@ -43,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 String username = jwtUtil.extractUsername(token);
                 String role = jwtUtil.extractRole(token);
 
-                // INJEÇÃO DA AUTENTICAÇÃO NO CONTEXTO DO SPRING SECURITY
+                // [SEC-33] INJEÇÃO DA AUTENTICAÇÃO NO CONTEXTO DO SPRING SECURITY
                 // A partir daqui, o Spring reconhece o usuário como autenticado
                 // e aplica as regras de autorização definidas no SecurityConfig.
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
