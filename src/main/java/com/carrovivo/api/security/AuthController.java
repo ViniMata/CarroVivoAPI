@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
+// CONTROLLER DE AUTENTICAÇÃO
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -23,6 +24,8 @@ public class AuthController {
 
     private final AuthService authService;
 
+    // ENDPOINT DE LOGIN — ÚNICO ENDPOINT PÚBLICO DA API
+    // @Valid ativa a validação do LoginRequest antes de qualquer processamento.
     @PostMapping("/login")
     @Operation(summary = "Login e geração de token JWT (30 min)")
     public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest request) {
@@ -30,6 +33,10 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
+    // REGISTRO PROTEGIDO POR ROLE ADMIN
+    // @PreAuthorize garante que só ADMIN pode criar novos usuários.
+    // Sem esta annotation (e sem @EnableMethodSecurity no SecurityConfig),
+    // qualquer pessoa poderia se registrar como ADMIN passando role=ADMIN no body.
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Registrar novo usuário — somente ADMIN")
@@ -38,6 +45,9 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Usuário registrado com sucesso"));
     }
 
+    // VALIDAÇÃO DE ENTRADA NO LOGIN
+    // @NotBlank e @Size limitam o tamanho máximo, prevenindo
+    // buffer overflow e flooding via campos gigantes.
     @Data
     public static class LoginRequest {
         @NotBlank(message = "Username é obrigatório")
@@ -49,6 +59,8 @@ public class AuthController {
         private String password;
     }
 
+    // VALIDAÇÃO DE ENTRADA NO REGISTRO
+    // Tamanho mínimo de 8 caracteres na senha como política básica de segurança.
     @Data
     public static class RegisterRequest {
         @NotBlank(message = "Username é obrigatório")

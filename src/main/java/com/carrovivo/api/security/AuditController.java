@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+// CONTROLLER DE AUDITORIA — ACESSO EXCLUSIVO ADMIN
+// Expõe a trilha de auditoria apenas para administradores.
 @RestController
 @RequestMapping("/api/audit")
 @RequiredArgsConstructor
@@ -21,6 +23,10 @@ public class AuditController {
 
     private final AuditLogRepository repository;
 
+    // PAGINAÇÃO OBRIGATÓRIA — PREVENÇÃO DE DoS
+    // Sem paginação, um findAll() poderia retornar milhões de registros,
+    // causando estouro de memória e indisponibilidade (DoS acidental ou intencional).
+    // Máximo de 50 registros por página.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar logs de auditoria (paginado, máx 50 por página)")
