@@ -388,27 +388,48 @@ encryption:
 
 ## 10. Resumo das Implementações
 
-| # | Categoria | Implementação | Arquivo | Comentários |
+A tabela abaixo lista as **22 funcionalidades de segurança** implementadas. Os comentários `[SEC-XX]` no código vão de **SEC-01 até SEC-71** — cada funcionalidade pode conter múltiplos comentários detalhando partes diferentes da implementação.
+
+| # | Categoria | Implementação | Arquivo | Comentários no código |
 |---|---|---|---|---|
-| 1 | Sanitização | XSS — body, params e headers | `XssRequestWrapper.java` | SEC-18 a SEC-24 |
+| 1 | Sanitização | XSS — body, params e headers | `XssRequestWrapper.java` | SEC-18, SEC-19, SEC-20, SEC-21, SEC-22 |
 | 2 | Sanitização | Filtro XSS global | `XssFilter.java` | SEC-23, SEC-24 |
-| 3 | Validação | Tipagem, presença e tamanho nos DTOs | `VehicleDTO.java` e demais | SEC-65 a SEC-71 |
+| 3 | Validação | Tipagem, presença e tamanho nos DTOs | `VehicleDTO.java` e demais DTOs | SEC-65, SEC-66, SEC-67, SEC-68, SEC-69, SEC-70, SEC-71 |
 | 4 | Validação | Normalização por enum | `VehicleBrand.java` | SEC-69 |
-| 5 | Autenticação | JWT com HMAC-SHA256 | `JwtUtil.java` | SEC-25 a SEC-29 |
-| 6 | Autenticação | Expiração de 30 minutos | `JwtUtil.java` | SEC-28 |
-| 7 | Autenticação | Validação do token em cada requisição | `JwtFilter.java` | SEC-30 a SEC-33 |
-| 8 | Autorização | RBAC — 3 roles (ADMIN, ANALYST, USER) | `SecurityConfig.java` | SEC-08 |
+| 5 | Autenticação | JWT com HMAC-SHA256 | `JwtUtil.java` | SEC-25, SEC-26, SEC-27 |
+| 6 | Autenticação | Expiração de 30 minutos | `JwtUtil.java` | SEC-28, SEC-29 |
+| 7 | Autenticação | Validação do token em cada requisição | `JwtFilter.java` | SEC-30, SEC-31, SEC-32, SEC-33 |
+| 8 | Autorização | RBAC — 3 roles (ADMIN, ANALYST, USER) | `SecurityConfig.java` | SEC-01, SEC-02, SEC-08, SEC-09 |
 | 9 | Autorização | Swagger protegido por ADMIN | `SecurityConfig.java` | SEC-07 |
-| 10 | Autorização | Sessão stateless | `SecurityConfig.java` | SEC-05 |
-| 11 | Autorização | @PreAuthorize no registro | `AuthController.java` | SEC-44 |
-| 12 | Ataques | Rate limiting 60 req/min por IP | `RateLimitFilter.java` | SEC-14 a SEC-17 |
-| 13 | Ataques | Brute force — bloqueio após 5 tentativas | `AuthService.java` | SEC-35 a SEC-39 |
-| 14 | Ataques | User enumeration — mensagem genérica | `AuthService.java` | SEC-37 |
-| 15 | Criptografia | AES-256-CBC com IV aleatório | `EncryptionService.java` | SEC-47 a SEC-52 |
-| 16 | Criptografia | BCrypt para senhas | `SecurityConfig.java` | SEC-11 |
-| 17 | Erros | Mensagens genéricas sem stack trace | `GlobalExceptionHandler.java` | SEC-60 a SEC-64 |
+| 10 | Autorização | Sessão stateless | `SecurityConfig.java` | SEC-03, SEC-04, SEC-05 |
+| 11 | Autorização | @PreAuthorize no registro | `AuthController.java` | SEC-42, SEC-43, SEC-44 |
+| 12 | Ataques | Rate limiting 60 req/min por IP | `RateLimitFilter.java` | SEC-14, SEC-15, SEC-16, SEC-17 |
+| 13 | Ataques | Brute force — bloqueio após 5 tentativas | `AuthService.java` | SEC-34, SEC-35, SEC-36, SEC-38, SEC-39 |
+| 14 | Ataques | User enumeration — mensagem genérica | `AuthService.java` | SEC-37, SEC-38 |
+| 15 | Criptografia | AES-256-CBC com IV aleatório | `EncryptionService.java` | SEC-47, SEC-48, SEC-49, SEC-50, SEC-51, SEC-52 |
+| 16 | Criptografia | BCrypt para senhas | `SecurityConfig.java` + `AuthService.java` | SEC-11, SEC-40, SEC-41 |
+| 17 | Erros | Mensagens genéricas sem stack trace | `GlobalExceptionHandler.java` | SEC-60, SEC-61, SEC-62, SEC-63, SEC-64 |
 | 18 | CORS | Origens explícitas, sem wildcard | `SecurityConfig.java` | SEC-12, SEC-13 |
-| 19 | Auditoria | Trilha completa de ações | `AuditService.java` | SEC-54 a SEC-57 |
-| 20 | Auditoria | Consulta paginada (anti-DoS) | `AuditController.java` | SEC-59 |
+| 19 | Auditoria | Trilha completa de ações | `AuditService.java` | SEC-54, SEC-55, SEC-56, SEC-57 |
+| 20 | Auditoria | Consulta paginada (anti-DoS) | `AuditController.java` | SEC-58, SEC-59 |
 | 21 | Secrets | Nenhum valor hardcoded | `application.yml` | — |
 | 22 | Secrets | `.env` no `.gitignore` | `.gitignore` | — |
+
+### Distribuição completa por arquivo
+
+| Arquivo | Comentários SEC | Total |
+|---|---|---|
+| `SecurityConfig.java` | SEC-01 a SEC-13 | 13 |
+| `RateLimitFilter.java` | SEC-14 a SEC-17 | 4 |
+| `XssRequestWrapper.java` | SEC-18 a SEC-22 | 5 |
+| `XssFilter.java` | SEC-23 a SEC-24 | 2 |
+| `JwtUtil.java` | SEC-25 a SEC-29 | 5 |
+| `JwtFilter.java` | SEC-30 a SEC-33 | 4 |
+| `AuthService.java` | SEC-34 a SEC-41 | 8 |
+| `AuthController.java` | SEC-42 a SEC-46 | 5 |
+| `EncryptionService.java` | SEC-47 a SEC-53 | 7 |
+| `AuditService.java` | SEC-54 a SEC-57 | 4 |
+| `AuditController.java` | SEC-58 a SEC-59 | 2 |
+| `GlobalExceptionHandler.java` | SEC-60 a SEC-64 | 5 |
+| `VehicleDTO.java` e demais DTOs | SEC-65 a SEC-71 | 7 |
+| **Total** | **SEC-01 a SEC-71** | **71** |
