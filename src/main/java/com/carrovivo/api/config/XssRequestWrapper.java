@@ -11,14 +11,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 // [SEC-18] SANITIZAÇÃO XSS — PROTEÇÃO CONTRA CROSS-SITE SCRIPTING
-// Intercepta e sanitiza toda entrada antes que chegue aos controllers.
-// Cobre query params, headers E body JSON (via getInputStream/getReader).
 public class XssRequestWrapper extends HttpServletRequestWrapper {
 
     private final byte[] sanitizedBody;
 
     // [SEC-19] SANITIZAÇÃO DO BODY NO CONSTRUTOR
-    // O body é lido, sanitizado e armazenado em memória uma única vez.
     public XssRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
         String body = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -26,7 +23,6 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
     }
 
     // [SEC-20] getInputStream E getReader SOBRESCRITOS
-    // O Spring usa estes métodos para ler @RequestBody em APIs REST.
     @Override
     public ServletInputStream getInputStream() {
         ByteArrayInputStream bais = new ByteArrayInputStream(sanitizedBody);
@@ -43,7 +39,7 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         return new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8));
     }
 
-    // [SEC-21] SANITIZAÇÃO DE QUERY PARAMS E HEADERS
+    // [SEC-21] SANITIZAÇÃO DE QUERY PARAMS
     @Override
     public String[] getParameterValues(String parameter) {
         String[] values = super.getParameterValues(parameter);
@@ -58,14 +54,16 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         return sanitizeParam(super.getParameter(parameter));
     }
 
+    // [SEC-21] SANITIZAÇÃO DE HEADERS
+    // Headers como Content-Type contêm "/" legítimo (ex: application/json).
+    // Não escapamos "/" aqui — apenas removemos padrões XSS reais.
     @Override
     public String getHeader(String name) {
-        return sanitizeParam(super.getHeader(name));
+        return sanitizeHeader(super.getHeader(name));
     }
 
     // [SEC-22] SANITIZAÇÃO DO BODY JSON
     // Remove padrões XSS sem tocar na estrutura JSON.
-    // Não escapa "/" pois faz parte da sintaxe JSON e não é vetor XSS em JSON puro.
     private String sanitizeBody(String value) {
         if (value == null) return null;
         return value
@@ -75,9 +73,24 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
                 .replaceAll("(?i)eval\\(.*?\\)", "");
     }
 
-    // [SEC-22] SANITIZAÇÃO DE PARAMS E HEADERS
-    // Escapa caracteres HTML especiais em query params e headers
-    // onde a / não faz parte de uma estrutura de dados.
+    // [SEC-22] SANITIZAÇÃO DE HEADERS
+    // Não escapa "/" pois headers como Content-Type e Authorization
+    // contêm barras legítimas que não são vetores XSS.
+    private String sanitizeHeader(String value) {
+        if (value == null) return null;
+        return value
+                .replaceAll("<",   "&lt;")
+                .replaceAll(">",   "&gt;")
+                .replaceAll("'",   "&#x27;")
+                .replaceAll("\\(", "&#40;")
+                .replaceAll("\\)", "&#41;")
+                .replaceAll("(?i)eval\\(.*?\\)", "")
+                .replaceAll("(?i)javascript:",   "")
+                .replaceAll("(?i)<script",       "");
+    }
+
+    // [SEC-22] SANITIZAÇÃO DE QUERY PARAMS
+    // Query params não têm "/" como parte de estrutura — pode escapar.
     private String sanitizeParam(String value) {
         if (value == null) return null;
         return value

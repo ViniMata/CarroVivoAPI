@@ -1,6 +1,8 @@
 package com.carrovivo.api.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Map;
@@ -8,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// [SEC-34] SERVIÇO DE AUTENTICAÇÃO COM MÚLTIPLAS CAMADAS DE PROTEÇÃO
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -17,56 +19,58 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    // [SEC-35] BRUTE FORCE — MÁXIMO DE TENTATIVAS POR USERNAME
-    // Após 5 tentativas falhas consecutivas, o username é bloqueado.
-    // Usa ConcurrentHashMap para garantir thread-safety em ambiente multi-threaded.
     private static final int MAX_ATTEMPTS = 5;
     private final Map<String, AtomicInteger> loginAttempts = new ConcurrentHashMap<>();
 
     public String login(String username, String password) {
+        log.info("[DEBUG] encoder class: {}", passwordEncoder.getClass().getName());
+        log.info("[DEBUG] username recebido: '{}'", username);
+        log.info("[DEBUG] password recebido: '{}'", password);
+        log.info("[DEBUG] password length: {}", password.length());
+
+        // Testa BCrypt direto, ignorando o encoder injetado
+        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        String hash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lihO";
+        boolean directMatch = bcrypt.matches(password, hash);
+        log.info("[DEBUG] BCrypt direto (sem injeção): {}", directMatch);
+
         AtomicInteger attempts = loginAttempts.computeIfAbsent(username, k -> new AtomicInteger(0));
 
-        // [SEC-36] VERIFICAÇÃO DE BLOQUEIO ANTES DA CONSULTA AO BANCO
-        // Bloqueia sem ir ao banco, economizando recursos e
-        // retornando a mesma mensagem genérica para não revelar motivo.
         if (attempts.get() >= MAX_ATTEMPTS) {
             throw new SecurityException("Credenciais inválidas");
         }
 
-        // [SEC-37] QUERY ÚNICA — SEM USER ENUMERATION
-        // Uma única consulta ao banco cujo resultado é reutilizado.
-        // Se o usuário não existe, orElse(false) retorna false sem exceção —
-        // tornando a resposta idêntica à de senha incorreta.
-        // Isso impede que atacantes descubram quais usernames existem.
         Optional<UserEntity> userOpt = userRepository.findByUsername(username);
+        log.info("[DEBUG] usuário encontrado: {}", userOpt.isPresent());
+
+        if (userOpt.isPresent()) {
+            String storedHash = userOpt.get().getPassword();
+            log.info("[DEBUG] hash do banco length: {}", storedHash.length());
+            log.info("[DEBUG] hash do banco: '{}'", storedHash);
+            boolean injectedMatch = passwordEncoder.matches(password, storedHash);
+            boolean directMatchBank = bcrypt.matches(password, storedHash);
+            log.info("[DEBUG] matches com encoder injetado: {}", injectedMatch);
+            log.info("[DEBUG] matches com BCrypt direto + hash do banco: {}", directMatchBank);
+        }
 
         boolean valid = userOpt
                 .map(user -> passwordEncoder.matches(password, user.getPassword()))
                 .orElse(false);
 
         if (!valid) {
-            // [SEC-38] INCREMENTO DO CONTADOR E MESMA MENSAGEM SEMPRE
-            // Não diferencia "usuário não existe" de "senha errada".
             attempts.incrementAndGet();
             throw new SecurityException("Credenciais inválidas");
         }
 
-        // [SEC-39] RESET DO CONTADOR EM LOGIN BEM-SUCEDIDO
         attempts.set(0);
         UserEntity user = userOpt.get();
         return jwtUtil.generateToken(user.getUsername(), user.getRole().name());
     }
 
     public UserEntity register(String username, String password, Role requestedRole) {
-        // [SEC-40] FALLBACK SEGURO DE ROLE
-        // Se a role vier nula, atribui USER como padrão mais restritivo.
-        // A proteção principal está no @PreAuthorize do AuthController,
-        // mas esta é uma segunda camada de defesa.
         Role safeRole = (requestedRole != null) ? requestedRole : Role.USER;
         UserEntity user = UserEntity.builder()
                 .username(username)
-                // [SEC-41] SENHA ARMAZENADA COMO HASH BCRYPT
-                // A senha nunca é armazenada em texto claro.
                 .password(passwordEncoder.encode(password))
                 .role(safeRole)
                 .build();
