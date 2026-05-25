@@ -1,272 +1,264 @@
-# 🚗 Carro Vivo API
+# CarroVivoAPI
 
-API REST para gerenciamento inteligente de veículos — diagnóstico de peças, histórico de manutenções, garantias, notificações e concessionárias próximas.
+API REST desenvolvida para gerenciamento inteligente de veículos, manutenções, diagnósticos, garantias, concessionárias e notificações.
 
----
-
-## 📋 Sobre o Projeto
-
-O **Carro Vivo** é um sistema orientado a serviços (SOA) desenvolvido com **Java 21** e **Spring Boot 3**, seguindo os princípios de arquitetura REST e boas práticas de segurança e desenvolvimento.
+O projeto segue uma arquitetura baseada em microsserviços e fornece endpoints para monitoramento automotivo, histórico de manutenção e comunicação com usuários.
 
 ---
 
-## 🏗️ Arquitetura
+# Funcionalidades
 
-```
-┌─────────────────────────────────────────┐
-│         Camada de Apresentação          │
-│     Controllers REST + Swagger UI       │
-├─────────────────────────────────────────┤
-│           Camada de Serviço             │
-│  VehicleService  │  MaintenanceService  │
-│  DiagnosticService │  WarrantyService   │
-│  NotificationService │  DealerService   │
-├─────────────────────────────────────────┤
-│            Camada de Dados              │
-│     PostgreSQL + Flyway Migrations      │
-└─────────────────────────────────────────┘
+* Cadastro e gerenciamento de veículos
+* Controle de manutenções
+* Diagnóstico automotivo
+* Controle de garantias
+* Busca de concessionárias
+* Sistema de notificações
+* Integração entre serviços
+* Estrutura preparada para microsserviços
+
+---
+
+# Arquitetura
+
+A API foi estruturada utilizando separação por serviços:
+
+* `VehicleService`
+* `MaintenanceService`
+* `DiagnosticService`
+* `WarrantyService`
+* `DealerService`
+* `NotificationService`
+
+Fluxo principal:
+
+```text
+Cliente → API Gateway → Serviços → Banco de Dados
 ```
 
-### Estrutura de Pacotes
+Possui suporte para:
 
-```
-com.carrovivo.api
-├── vehicle/
-│   ├── controller/
-│   ├── service/
-│   ├── repository/
-│   ├── model/
-│   └── dto/
-├── maintenance/
-├── diagnostic/
-├── warranty/
-├── notification/
-├── dealer/
-├── config/
-├── exception/
-└── security/
+* JWT Authentication
+* Logs centralizados
+* Cache Redis
+* Mensageria (RabbitMQ/Kafka)
+* Observabilidade
+* Containerização com Docker
+
+---
+
+# Tecnologias Utilizadas
+
+## Backend
+
+* Java
+* Spring Boot
+* Spring Web
+* Spring Data JPA
+* Spring Security
+* JWT
+* Maven
+
+## Banco de Dados
+
+* PostgreSQL
+* Redis
+
+## Infraestrutura
+
+* Docker
+* Kubernetes
+* API Gateway
+* RabbitMQ / Kafka
+
+---
+
+# Estrutura do Projeto
+
+```text
+src/
+ ├── controller/
+ ├── service/
+ ├── repository/
+ ├── model/
+ ├── dto/
+ ├── config/
+ ├── security/
+ └── exception/
 ```
 
 ---
 
-## 🛠️ Tecnologias
+# Como Executar o Projeto
 
-| Tecnologia | Uso |
-|---|---|
-| Java 21 | Linguagem principal |
-| Spring Boot | Framework principal |
-| Spring Security | Autenticação JWT + RBAC |
-| PostgreSQL 16 | Banco de dados |
-| Flyway | Controle de migrações |
-| Lombok | Redução de boilerplate |
-| SpringDoc OpenAPI | Documentação Swagger |
-| Docker | Containerização do banco |
-
----
-
-## 🚀 Como Rodar o Projeto
-
-### Pré-requisitos
-
-- Java 21+
-- Maven
-- Docker Desktop
-
-### 1. Clone o repositório
+## 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/carrovivo-api.git
-cd carrovivo-api
+git clone <URL_DO_REPOSITORIO>
 ```
 
-### 2. Configure as variáveis de ambiente
+## 2. Entrar na pasta
 
-Copie o arquivo de exemplo e preencha com seus valores:
+```bash
+cd CarroVivoAPI
+```
+
+## 3. Configurar variáveis de ambiente
+
+Copie o arquivo `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Edite o `.env` com suas credenciais. **Nunca commite o `.env`** — ele já está no `.gitignore`.
+Configure:
 
-### 3. Suba o banco de dados
+* Banco de dados
+* JWT Secret
+* Redis
+* Mensageria
 
-```bash
-docker-compose up -d
-```
+---
 
-> O Docker lê automaticamente as variáveis do `.env` na raiz do projeto.
+## 4. Executar o projeto
 
-### 4. Execute o projeto
+### Maven
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Ou pelo IntelliJ IDEA com `Shift + F10`.
+ou
 
-### 5. Acesse a documentação
-
-O Swagger está protegido e requer autenticação com role **ADMIN**:
-
-```
-http://localhost:8080/swagger-ui.html
+```bash
+mvn spring-boot:run
 ```
 
 ---
 
-## 🔐 Segurança
+# Autenticação
 
-### Autenticação
+A API utiliza autenticação JWT Bearer Token.
 
-A API usa **JWT Bearer Tokens** com expiração de **30 minutos**.
+Exemplo:
 
-**Login:**
-```
-POST /api/auth/login
-{ "username": "admin", "password": "sua-senha" }
-```
-
-Copie o token retornado e use no header de todas as requisições:
-```
-Authorization: Bearer <token>
-```
-
-### Roles (RBAC)
-
-| Role | Acesso |
-|---|---|
-| ADMIN | Tudo, incluindo Swagger e registro de usuários |
-| ANALYST | Veículos, manutenções, diagnósticos, garantias, notificações, dealers |
-| USER | Veículos, notificações, dealers |
-
-### Registro de usuários
-
-Somente **ADMIN** pode registrar novos usuários:
-```
-POST /api/auth/register  (requer token ADMIN)
-{ "username": "analista1", "password": "senha123", "role": "ANALYST" }
+```http
+Authorization: Bearer TOKEN
 ```
 
 ---
 
-## 📦 Banco de Dados
+# Endpoints
 
-A conexão usa variáveis de ambiente definidas no `.env`. As migrações são executadas automaticamente pelo Flyway ao iniciar:
+# VehicleService
 
-| Versão | Arquivo | Descrição |
-|---|---|---|
-| V1 | `V1__create_vehicles.sql` | Tabela de veículos |
-| V2 | `V2__create_maintenances.sql` | Tabela de manutenções |
-| V3 | `V3__create_diagnostics.sql` | Tabela de diagnósticos |
-| V4 | `V4__create_warranties.sql` | Tabela de garantias |
-| V5 | `V5__create_notifications.sql` | Tabela de notificações |
-| V6 | `V6__create_users.sql` | Tabela de usuários |
-| V7 | `V7__create_audit_logs.sql` | Tabela de auditoria |
-
----
-
-## 🔗 Endpoints da API
-
-### Vehicles `/api/vehicles`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/vehicles` | Listar todos os veículos |
-| GET | `/api/vehicles/{id}` | Buscar veículo por ID |
-| GET | `/api/vehicles/plate/{plate}` | Buscar veículo por placa |
-| POST | `/api/vehicles` | Cadastrar novo veículo |
-| PUT | `/api/vehicles/{id}` | Atualizar veículo |
-| DELETE | `/api/vehicles/{id}` | Remover veículo |
-
-### Maintenances `/api/maintenances`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/maintenances` | Listar todas as manutenções |
-| GET | `/api/maintenances/{id}` | Buscar manutenção por ID |
-| GET | `/api/maintenances/vehicle/{id}` | Histórico por veículo |
-| GET | `/api/maintenances/recurring` | Manutenções recorrentes |
-| POST | `/api/maintenances` | Registrar nova manutenção |
-| PUT | `/api/maintenances/{id}` | Atualizar manutenção |
-| DELETE | `/api/maintenances/{id}` | Remover manutenção |
-
-### Diagnostics `/api/diagnostics`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/diagnostics/vehicle/{id}` | Diagnóstico atual do veículo |
-| GET | `/api/diagnostics/{id}` | Buscar diagnóstico por ID |
-| GET | `/api/diagnostics/vehicle/{id}/alerts` | Alertas ativos (YELLOW e RED) |
-| POST | `/api/diagnostics` | Registrar leitura de diagnóstico |
-| DELETE | `/api/diagnostics/{id}` | Remover diagnóstico |
-
-### Warranties `/api/warranties`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/warranties/vehicle/{id}` | Garantia ativa do veículo |
-| GET | `/api/warranties/{id}/valid` | Verificar se garantia é válida |
-| POST | `/api/warranties` | Registrar garantia |
-| PUT | `/api/warranties/{id}` | Atualizar garantia |
-
-### Notifications `/api/notifications`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/notifications/vehicle/{id}` | Notificações do veículo |
-| POST | `/api/notifications/send` | Enviar notificação |
-| PUT | `/api/notifications/{id}/read` | Marcar como lida |
-
-### Dealers `/api/dealers`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/dealers/nearby?city={city}` | Concessionárias próximas |
-| GET | `/api/dealers/{id}/prices` | Preços de serviços |
-| GET | `/api/dealers/{id}/schedule` | Disponibilidade de agendamento |
-
-### Auth `/api/auth`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| POST | `/api/auth/login` | Login e geração de token JWT |
-| POST | `/api/auth/register` | Registrar usuário (somente ADMIN) |
-
-### Audit `/api/audit`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/audit` | Listar logs (paginado, somente ADMIN) |
-| GET | `/api/audit/user/{username}` | Logs por usuário |
-| GET | `/api/audit/status/{status}` | Logs por status |
+| Método | Endpoint                  | Descrição         |
+| ------ | ------------------------- | ----------------- |
+| GET    | `/vehicles`               | Listar veículos   |
+| POST   | `/vehicles`               | Cadastrar veículo |
+| GET    | `/vehicles/{id}`          | Buscar por ID     |
+| PUT    | `/vehicles/{id}`          | Atualizar veículo |
+| DELETE | `/vehicles/{id}`          | Remover veículo   |
+| GET    | `/vehicles/plate/{plate}` | Buscar por placa  |
 
 ---
 
-## ⚠️ Respostas de Erro
+# MaintenanceService
 
-A API retorna respostas padronizadas sem expor detalhes internos:
+| Método | Endpoint                     | Descrição            |
+| ------ | ---------------------------- | -------------------- |
+| GET    | `/maintenances`              | Listar manutenções   |
+| POST   | `/maintenances`              | Registrar manutenção |
+| GET    | `/maintenances/{id}`         | Buscar manutenção    |
+| PUT    | `/maintenances/{id}`         | Atualizar manutenção |
+| GET    | `/maintenances/vehicle/{id}` | Histórico do veículo |
+| GET    | `/maintenances/recurring`    | Serviços recorrentes |
 
-```json
-{
-  "timestamp": "2026-05-18T20:00:00",
-  "status": 404,
-  "message": "Recurso não encontrado"
-}
+---
+
+# DiagnosticService
+
+| Método | Endpoint                    | Descrição         |
+| ------ | --------------------------- | ----------------- |
+| GET    | `/diagnostics/vehicle/{id}` | Diagnóstico atual |
+| POST   | `/diagnostics`              | Registrar leitura |
+| GET    | `/diagnostics/{id}/parts`   | Status das peças  |
+| GET    | `/diagnostics/{id}/alerts`  | Alertas ativos    |
+
+---
+
+# WarrantyService
+
+| Método | Endpoint                   | Descrição          |
+| ------ | -------------------------- | ------------------ |
+| GET    | `/warranties/vehicle/{id}` | Status da garantia |
+| POST   | `/warranties`              | Registrar garantia |
+| PUT    | `/warranties/{id}`         | Atualizar garantia |
+| GET    | `/warranties/{id}/valid`   | Verificar validade |
+
+---
+
+# DealerService
+
+| Método | Endpoint                 | Descrição                |
+| ------ | ------------------------ | ------------------------ |
+| GET    | `/dealers/nearby`        | Concessionárias próximas |
+| GET    | `/dealers/{id}/prices`   | Preços por serviço       |
+| GET    | `/dealers/{id}/schedule` | Disponibilidade          |
+
+---
+
+# NotificationService
+
+| Método | Endpoint                      | Descrição               |
+| ------ | ----------------------------- | ----------------------- |
+| POST   | `/notifications/send`         | Enviar alerta           |
+| GET    | `/notifications/vehicle/{id}` | Notificações do veículo |
+| PUT    | `/notifications/{id}/read`    | Marcar como lida        |
+
+---
+
+# Observabilidade
+
+O projeto possui suporte para:
+
+* Prometheus
+* Grafana
+* ELK Stack
+* OpenTelemetry
+
+---
+
+# Testes
+
+Executar testes:
+
+```bash
+mvn test
 ```
 
-| Status | Situação |
-|---|---|
-| 200 | Sucesso |
-| 201 | Recurso criado |
-| 204 | Removido com sucesso |
-| 400 | Erro de validação |
-| 401 | Credenciais inválidas |
-| 429 | Muitas requisições (rate limit) |
-| 500 | Erro interno do servidor |
+---
+
+# Docker
+
+Build da aplicação:
+
+```bash
+docker build -t carrovivo-api .
+```
+
+Executar container:
+
+```bash
+docker run -p 8080:8080 carrovivo-api
+```
 
 ---
 
-## 👥 Equipe
+# Autores
 
-Desenvolvido como projeto acadêmico — Integração de Sistemas / Arquitetura Orientada a Serviços.
+Fabiano RM: 555524
+Lorran RM: 558982
+Maria RM: 557478
+Pedro RM: 556268
+Vinícius RM: 555200
