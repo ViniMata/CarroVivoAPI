@@ -4,6 +4,16 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Secrets — NUNCA subir
+.env
+.env.*
+env
+env.*
+!.env.example
+!env.example
+application-prod.yml
+application-local.yml
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +41,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+src/main/resources/db/migration/V9__create_admin.sq

@@ -24,13 +24,15 @@ public class VehicleService {
     public VehicleDTO findById(Long id) {
         return repository.findById(id)
                 .map(this::toDTO)
-                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado com id: " + id));
+                // Mensagem genérica — não expõe o id na resposta nem nos logs
+                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado"));
     }
 
     public VehicleDTO findByPlate(String plate) {
         return repository.findByPlate(plate)
                 .map(this::toDTO)
-                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado com placa: " + plate));
+                // Mensagem genérica — não expõe a placa na resposta nem nos logs
+                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado"));
     }
 
     public VehicleDTO save(VehicleDTO dto) {
@@ -40,7 +42,7 @@ public class VehicleService {
 
     public VehicleDTO update(Long id, VehicleDTO dto) {
         Vehicle existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado com id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado"));
         existing.setPlate(dto.getPlate());
         existing.setModel(dto.getModel());
         existing.setBrand(dto.getBrand());
@@ -53,7 +55,7 @@ public class VehicleService {
 
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Veículo não encontrado com id: " + id);
+            throw new ResourceNotFoundException("Veículo não encontrado");
         }
         repository.deleteById(id);
     }

@@ -1,248 +1,264 @@
-# 🚗 Carro Vivo API
+# CarroVivoAPI
 
-API REST para gerenciamento inteligente de veículos — diagnóstico de peças, histórico de manutenções, garantias, notificações e concessionárias próximas.
+API REST desenvolvida para gerenciamento inteligente de veículos, manutenções, diagnósticos, garantias, concessionárias e notificações.
 
----
-
-## 📋 Sobre o Projeto
-
-O **Carro Vivo** é um sistema orientado a serviços (SOA) desenvolvido com **Java 21** e **Spring Boot 4.0.6**, seguindo os princípios de arquitetura REST e boas práticas de desenvolvimento. O sistema permite o gerenciamento completo do ciclo de vida de um veículo, desde o cadastro até o diagnóstico de peças e agendamento em concessionárias.
+O projeto segue uma arquitetura baseada em microsserviços e fornece endpoints para monitoramento automotivo, histórico de manutenção e comunicação com usuários.
 
 ---
 
-## 🏗️ Arquitetura
+# Funcionalidades
 
-O projeto segue o padrão **SOA (Service-Oriented Architecture)** com separação clara entre três camadas:
-
-```
-┌─────────────────────────────────────────┐
-│         Camada de Apresentação          │
-│     Controllers REST + Swagger UI       │
-├─────────────────────────────────────────┤
-│           Camada de Serviço             │
-│  VehicleService  │  MaintenanceService  │
-│  DiagnosticService │  WarrantyService   │
-│  NotificationService │  DealerService   │
-├─────────────────────────────────────────┤
-│            Camada de Dados              │
-│     PostgreSQL + Flyway Migrations      │
-└─────────────────────────────────────────┘
-```
-
-### Estrutura de Pacotes
-
-```
-com.carrovivo.api
-├── vehicle/
-│   ├── controller/
-│   ├── service/
-│   ├── repository/
-│   ├── model/
-│   └── dto/
-├── maintenance/
-├── diagnostic/
-├── warranty/
-├── notification/
-├── dealer/
-├── config/
-├── exception/
-└── security/
-```
-
-Cada módulo é **independente e reutilizável**, comunicando-se apenas através de seus DTOs e interfaces de serviço.
+* Cadastro e gerenciamento de veículos
+* Controle de manutenções
+* Diagnóstico automotivo
+* Controle de garantias
+* Busca de concessionárias
+* Sistema de notificações
+* Integração entre serviços
+* Estrutura preparada para microsserviços
 
 ---
 
-## 🛠️ Tecnologias
+# Arquitetura
 
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 4.0.6 | Framework principal |
-| Spring Web | — | APIs RESTful |
-| Spring Data JPA | — | Persistência |
-| Spring Security | — | Autenticação e autorização |
-| PostgreSQL | 16 | Banco de dados |
-| Flyway | 11 | Controle de migrações |
-| Lombok | — | Redução de boilerplate |
-| SpringDoc OpenAPI | 2.5.0 | Documentação Swagger |
-| Docker | — | Containerização do banco |
+A API foi estruturada utilizando separação por serviços:
+
+* `VehicleService`
+* `MaintenanceService`
+* `DiagnosticService`
+* `WarrantyService`
+* `DealerService`
+* `NotificationService`
+
+Fluxo principal:
+
+```text
+Cliente → API Gateway → Serviços → Banco de Dados
+```
+
+Possui suporte para:
+
+* JWT Authentication
+* Logs centralizados
+* Cache Redis
+* Mensageria (RabbitMQ/Kafka)
+* Observabilidade
+* Containerização com Docker
 
 ---
 
-## 🚀 Como Rodar o Projeto
+# Tecnologias Utilizadas
 
-### Pré-requisitos
+## Backend
 
-- Java 21+
-- Maven
-- Docker Desktop
+* Java
+* Spring Boot
+* Spring Web
+* Spring Data JPA
+* Spring Security
+* JWT
+* Maven
 
-### 1. Clone o repositório
+## Banco de Dados
+
+* PostgreSQL
+* Redis
+
+## Infraestrutura
+
+* Docker
+* Kubernetes
+* API Gateway
+* RabbitMQ / Kafka
+
+---
+
+# Estrutura do Projeto
+
+```text
+src/
+ ├── controller/
+ ├── service/
+ ├── repository/
+ ├── model/
+ ├── dto/
+ ├── config/
+ ├── security/
+ └── exception/
+```
+
+---
+
+# Como Executar o Projeto
+
+## 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/carrovivo-api.git
-cd carrovivo-api
+git clone <URL_DO_REPOSITORIO>
 ```
 
-### 2. Suba o banco de dados
+## 2. Entrar na pasta
 
 ```bash
-docker-compose up -d
+cd CarroVivoAPI
 ```
 
-O arquivo `docker-compose.yml` na raiz do projeto sobe um container PostgreSQL 16 na porta `5432` com as credenciais configuradas.
+## 3. Configurar variáveis de ambiente
 
-### 3. Execute o projeto
+Copie o arquivo `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Configure:
+
+* Banco de dados
+* JWT Secret
+* Redis
+* Mensageria
+
+---
+
+## 4. Executar o projeto
+
+### Maven
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Ou pelo IntelliJ IDEA com `Shift + F10`.
+ou
 
-### 4. Acesse a documentação
-
-```
-http://localhost:8080/swagger-ui.html
+```bash
+mvn spring-boot:run
 ```
 
 ---
 
-## 📦 Banco de Dados
+# Autenticação
 
-A conexão é configurada no `application.yml`:
+A API utiliza autenticação JWT Bearer Token.
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/carrovivo
-    username: carrovivo
-    password: carrovivo123
-```
+Exemplo:
 
-### Migrações (Flyway)
-
-As migrações são executadas automaticamente ao iniciar a aplicação:
-
-| Versão | Arquivo | Descrição |
-|---|---|---|
-| V1 | `V1__create_vehicles.sql` | Tabela de veículos |
-| V2 | `V2__create_maintenances.sql` | Tabela de manutenções |
-| V3 | `V3__create_diagnostics.sql` | Tabela de diagnósticos |
-| V4 | `V4__create_warranties.sql` | Tabela de garantias |
-| V5 | `V5__create_notifications.sql` | Tabela de notificações |
-| V6 | `V6__create_users.sql` | Tabela de usuários |
-| V7 | `V7__create_audit_logs.sql` | Tabela de auditoria |
-
----
-
-## 🔗 Endpoints da API
-
-A documentação completa e interativa está disponível no Swagger UI. Abaixo um resumo dos principais endpoints:
-
-### Vehicles `/api/vehicles`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/vehicles` | Listar todos os veículos |
-| GET | `/api/vehicles/{id}` | Buscar veículo por ID |
-| GET | `/api/vehicles/plate/{plate}` | Buscar veículo por placa |
-| POST | `/api/vehicles` | Cadastrar novo veículo |
-| PUT | `/api/vehicles/{id}` | Atualizar veículo |
-| DELETE | `/api/vehicles/{id}` | Remover veículo |
-
-### Maintenances `/api/maintenances`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/maintenances` | Listar todas as manutenções |
-| GET | `/api/maintenances/{id}` | Buscar manutenção por ID |
-| GET | `/api/maintenances/vehicle/{id}` | Histórico de manutenções do veículo |
-| GET | `/api/maintenances/recurring` | Listar manutenções recorrentes |
-| POST | `/api/maintenances` | Registrar nova manutenção |
-| PUT | `/api/maintenances/{id}` | Atualizar manutenção |
-| DELETE | `/api/maintenances/{id}` | Remover manutenção |
-
-### Diagnostics `/api/diagnostics`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/diagnostics/vehicle/{id}` | Diagnóstico atual do veículo |
-| GET | `/api/diagnostics/{id}` | Buscar diagnóstico por ID |
-| GET | `/api/diagnostics/vehicle/{id}/alerts` | Alertas ativos (YELLOW e RED) |
-| POST | `/api/diagnostics` | Registrar leitura de diagnóstico |
-| DELETE | `/api/diagnostics/{id}` | Remover diagnóstico |
-
-### Warranties `/api/warranties`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/warranties/vehicle/{id}` | Buscar garantia ativa do veículo |
-| GET | `/api/warranties/{id}/valid` | Verificar se garantia está válida |
-| POST | `/api/warranties` | Registrar garantia |
-| PUT | `/api/warranties/{id}` | Atualizar garantia |
-
-### Notifications `/api/notifications`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/notifications/vehicle/{id}` | Listar notificações do veículo |
-| POST | `/api/notifications/send` | Enviar notificação |
-| PUT | `/api/notifications/{id}/read` | Marcar como lida |
-
-### Dealers `/api/dealers`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/api/dealers/nearby?city={city}` | Concessionárias próximas por cidade |
-| GET | `/api/dealers/{id}/prices` | Preços de serviços da concessionária |
-| GET | `/api/dealers/{id}/schedule` | Disponibilidade de agendamento |
-
----
-
-## ⚠️ Tratamento de Erros
-
-A API retorna respostas padronizadas para erros:
-
-```json
-{
-  "timestamp": "2026-05-18T20:00:00",
-  "status": 404,
-  "message": "Veículo não encontrado com id: 1"
-}
-```
-
-| Status | Situação |
-|---|---|
-| 200 | Sucesso |
-| 201 | Recurso criado |
-| 204 | Removido com sucesso |
-| 400 | Erro de validação |
-| 404 | Recurso não encontrado |
-| 500 | Erro interno do servidor |
-
----
-
-## 📄 Documentação Interativa
-
-Acesse o Swagger UI para testar todos os endpoints diretamente pelo navegador:
-
-```
-http://localhost:8080/swagger-ui.html
-```
-
-A especificação OpenAPI em JSON está disponível em:
-
-```
-http://localhost:8080/api-docs
+```http
+Authorization: Bearer TOKEN
 ```
 
 ---
 
-## 👥 Equipe
+# Endpoints
 
-Desenvolvido como projeto acadêmico — Integração de Sistemas / Arquitetura Orientada a Serviços.# CarroVivoAPI
-# CarroVivoAPI
-# CarroVivoAPI
-# CarroVivoAPI
+# VehicleService
+
+| Método | Endpoint                  | Descrição         |
+| ------ | ------------------------- | ----------------- |
+| GET    | `/vehicles`               | Listar veículos   |
+| POST   | `/vehicles`               | Cadastrar veículo |
+| GET    | `/vehicles/{id}`          | Buscar por ID     |
+| PUT    | `/vehicles/{id}`          | Atualizar veículo |
+| DELETE | `/vehicles/{id}`          | Remover veículo   |
+| GET    | `/vehicles/plate/{plate}` | Buscar por placa  |
+
+---
+
+# MaintenanceService
+
+| Método | Endpoint                     | Descrição            |
+| ------ | ---------------------------- | -------------------- |
+| GET    | `/maintenances`              | Listar manutenções   |
+| POST   | `/maintenances`              | Registrar manutenção |
+| GET    | `/maintenances/{id}`         | Buscar manutenção    |
+| PUT    | `/maintenances/{id}`         | Atualizar manutenção |
+| GET    | `/maintenances/vehicle/{id}` | Histórico do veículo |
+| GET    | `/maintenances/recurring`    | Serviços recorrentes |
+
+---
+
+# DiagnosticService
+
+| Método | Endpoint                    | Descrição         |
+| ------ | --------------------------- | ----------------- |
+| GET    | `/diagnostics/vehicle/{id}` | Diagnóstico atual |
+| POST   | `/diagnostics`              | Registrar leitura |
+| GET    | `/diagnostics/{id}/parts`   | Status das peças  |
+| GET    | `/diagnostics/{id}/alerts`  | Alertas ativos    |
+
+---
+
+# WarrantyService
+
+| Método | Endpoint                   | Descrição          |
+| ------ | -------------------------- | ------------------ |
+| GET    | `/warranties/vehicle/{id}` | Status da garantia |
+| POST   | `/warranties`              | Registrar garantia |
+| PUT    | `/warranties/{id}`         | Atualizar garantia |
+| GET    | `/warranties/{id}/valid`   | Verificar validade |
+
+---
+
+# DealerService
+
+| Método | Endpoint                 | Descrição                |
+| ------ | ------------------------ | ------------------------ |
+| GET    | `/dealers/nearby`        | Concessionárias próximas |
+| GET    | `/dealers/{id}/prices`   | Preços por serviço       |
+| GET    | `/dealers/{id}/schedule` | Disponibilidade          |
+
+---
+
+# NotificationService
+
+| Método | Endpoint                      | Descrição               |
+| ------ | ----------------------------- | ----------------------- |
+| POST   | `/notifications/send`         | Enviar alerta           |
+| GET    | `/notifications/vehicle/{id}` | Notificações do veículo |
+| PUT    | `/notifications/{id}/read`    | Marcar como lida        |
+
+---
+
+# Observabilidade
+
+O projeto possui suporte para:
+
+* Prometheus
+* Grafana
+* ELK Stack
+* OpenTelemetry
+
+---
+
+# Testes
+
+Executar testes:
+
+```bash
+mvn test
+```
+
+---
+
+# Docker
+
+Build da aplicação:
+
+```bash
+docker build -t carrovivo-api .
+```
+
+Executar container:
+
+```bash
+docker run -p 8080:8080 carrovivo-api
+```
+
+---
+
+# Autores
+
+Fabiano RM: 555524
+Lorran RM: 558982
+Maria RM: 557478
+Pedro RM: 556268
+Vinícius RM: 555200
